@@ -18,12 +18,12 @@
     <div id="image-size-info" class="image-size-info"></div>
 
     <style>
-        /* Style for the overlay button */
+
         .button {
             position: absolute;
             top: 10px;
             left: 10px;
-            z-index: 1; /* Places the button above the AR content */
+            z-index: 1; 
         }
 
         button {
@@ -35,7 +35,7 @@
             cursor: pointer;
         }
 
-        /* Style for displaying image size */
+
         .image-size-info {
             position: absolute;
             top: 10px;
@@ -48,7 +48,7 @@
     </style>
 
     <script>
-        // Add a click event listener to the button
+       
         document.getElementById("capture-button").addEventListener("click", function () {
             captureImageAndSend();
         });
@@ -56,7 +56,7 @@
         function captureImageAndSend() {
             const constraints = {
                 video: {
-                    facingMode: "environment", // Use the back camera (adjust as needed)
+                    facingMode: "environment", 
                 },
             };
 
@@ -67,7 +67,6 @@
                     const canvas = document.createElement("canvas");
                     const context = canvas.getContext("2d");
 
-                    // Add the playsinline attribute to ensure proper playback on iOS
                     video.setAttribute("playsinline", "");
 
                     video.srcObject = cameraStream;
@@ -78,20 +77,16 @@
                         canvas.height = video.videoHeight;
                         context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-                        // Convert the captured frame to a data URL
                         const imageDataURL = canvas.toDataURL("image/png");
 
-                        // Calculate the size of the image in bytes
-                        const imageSizeInBytes = imageDataURL.length * 0.75; // Approximate size
+                        const imageSizeInBytes = imageDataURL.length * 0.75; 
 
-                        // Display the image size on the screen
                         document.getElementById("image-size-info").textContent = `Image size: ${imageSizeInBytes.toFixed(2)} bytes`;
 
-                        // Create a FormData object to send the image to the API
                         const formData = new FormData();
                         formData.append("image", imageDataURL);
 
-                        // Set your authentication token here
+                      
                         const authToken = "YourAuthTokenHere";
 
                         fetch("https://ib1zyot6e1.execute-api.us-east-2.amazonaws.com/v1/upload", {
