@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://jeromeetienne.github.io/AR.js/aframe/build/aframe-ar.js"></script>
+</head>
+<body style="margin: 0px; overflow: hidden;">
+    <a-scene embedded arjs>
+        <a-marker-camera preset="hiro">
+            <a-box position="0 0.5 0" material="color: red; opacity: 1;"></a-box>
+        </a-marker-camera>
+    </a-scene>
+
+    <div id="overlay-button" class="button">
+        <button id="capture-button">Capture Image</button>
+    </div>
+
+    <div id="image-size-info" class="image-size-info"></div>
+
+    <style>
+        /* Style for the overlay button */
+        .button {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 1; /* Places the button above the AR content */
+        }
+
+        button {
+            background-color: #3498db;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        /* Style for displaying image size */
+        .image-size-info {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: #fff;
+            background-color: rgba(52, 152, 219, 0.7);
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+    </style>
+
+    <script>
+        // Add a click event listener to the button
+        document.getElementById("capture-button").addEventListener("click", function () {
+            captureImageAndSend();
+        });
+
+        function captureImageAndSend() {
+            const constraints = {
+                video: {
+                    facingMode: "environment", // Use the back camera (adjust as needed)
+                },
+            };
+
+            navigator.mediaDevices
+                .getUserMedia(constraints)
+                .then(function (cameraStream) {
+                    const video = document.createElement("video");
+                    const canvas = document.createElement("canvas");
+                    const context = canvas.getContext("2d");
+
+                    // Add the playsinline attribute to ensure proper playback on iOS
+                    video.setAttribute("playsinline", "");
+
+                    video.srcObject = cameraStream;
+                    video.play();
+
+                    video.addEventListener("playing", function () {
+                        canvas.width = video.videoWidth;
+                        canvas.height = video.videoHeight;
+                        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                        // Convert the captured frame to a data URL
+                        const imageDataURL = canvas.toDataURL("image/png");
+
+                        // Calculate the size of the image in bytes
+                        const imageSizeInBytes = imageDataURL.length * 0.75; // Approximate size
+
+                        // Display the image size on the screen
+                        document.getElementById("image-size-info").textContent = `Image size: ${imageSizeInBytes.toFixed(2)} bytes`;
+
+                        // Create a FormData object to send the image to the API
+                        const formData = new FormData();
+                        formData.append("image", imageDataURL);
+
+                        // Set your authentication token here
+                        const authToken = "YourAuthTokenHere";
+
+                        fetch("https://ib1zyot6e1.execute-api.us-east-2.amazonaws.com/v1/upload", {
+                            method: "POST",
+                            mode: 'no-cors',
+                            body: formData,
+                            headers: {
+                                'Content-Type': "image/png",
+                                Accept: "*/*",
+                            },
+                        })
+                        .then(function (response) {
+                            console.log("Response status code: " + response.status);
+                            return response.text();
+                        })
+                        .then(function (responseText) {
+                            console.log("Response body: " + responseText);
+                            if (response.ok) {
+                                console.log("Image sent successfully.");
+                            } else {
+                                console.error("Failed to send the image.");
+                            }
+                        })
+                        .catch(function (error) {
+                            console.error("Error sending the image: " + error);
+                        });
+                    });
+                })
+                .catch(function (error) {
+                    console.error("Error accessing camera: " + error);
+                });
+        }
+    </script>
+</body>
