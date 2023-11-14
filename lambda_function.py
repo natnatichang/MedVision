@@ -1,5 +1,3 @@
-Lambda function code:
-
 import json
 import base64
 import boto3
